@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId} = require('mongodb');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 3000
@@ -29,7 +30,14 @@ async function run() {
 
     const userCollection = client.db('actSchoolDb').collection('users');
 
-
+    
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.VERIFY_TOKEN, {
+        expiresIn: '1h'
+      })
+      res.send({token})
+    })
     /*****************************
      * Users route
     ******************************/
@@ -37,6 +45,11 @@ async function run() {
         const newUser = req.body;
         const result = await userCollection.insertOne(newUser);
         res.send(result);
+    })
+
+    app.get('/users', async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
