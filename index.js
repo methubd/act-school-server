@@ -66,6 +66,17 @@ async function run() {
       }
       next();
     }
+
+    const verifyInstructor = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = {email: email}
+      const user = await userCollection.findOne(query);
+
+      if(user?.role !== 'instructor'){
+        res.status(403).send({error: true, message: 'Forbidden Access'})
+      }
+      next();
+    }
     /*****************************
      * Home Page Route - Instructors and Classes
     ******************************/
@@ -75,10 +86,23 @@ async function run() {
       res.send(result)
     })
 
-    app.get('/classes', async (req, res) => {
+    app.get('/classs', async (req, res) => {
       const result = await classCollection.find().toArray();
       res.send(result)
     })
+
+    app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      
+      if(req.decoded.email !== email){
+        res.send({instructor: false})
+      }
+
+      const query = {email: email}
+      const user = await userCollection.findOne(query);
+      const result = {instructor: user?.role === 'instructor'}
+      res.send(result)
+  })
 
     /*****************************
      * Admin route
@@ -105,12 +129,13 @@ async function run() {
       res.send(result);
    })
 
-   app.get('/classes', verifyJWT, async (req, res) => {
-      const email = req.query.email;
+   app.get('/myClass', verifyJWT, async (req, res) => {
+      const email = req.decoded.email;      
+
       let query = {}
 
       if(email){
-        query = {instructorEmail: email}
+        query = {instructorEmail: req.decoded.email}
       }
 
       const result = await classCollection.find(query).toArray();
