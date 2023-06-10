@@ -163,6 +163,19 @@ async function run() {
             res.send(result)
         });
 
+        app.get("/selectedClass", verifyJWT, async (req, res) => {
+          const email = req.decoded.email;
+
+          let query = {};
+
+          if (email) {
+              query = { studentEmail: req.decoded.email };
+          }
+
+          const result = await selectedCollection.find(query).toArray();
+          res.send(result);
+      });
+
         /*****************************
          * Users route
          ******************************/
