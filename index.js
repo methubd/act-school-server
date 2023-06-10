@@ -104,6 +104,10 @@ async function run() {
             res.send(result);
         });
 
+        app.put("/classs/:id", async (req, res) => {
+            console.log('Id hitting to approve', req.params.id);
+        });
+
         app.get('/approved-classes', async (req, res) => {
             const query = {status: "Approved"}
             const approvedClass = await classCollection.find(query).toArray();
