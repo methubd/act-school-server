@@ -99,10 +99,17 @@ async function run() {
             res.send(result);
         });
 
-        app.get("/classs", async (req, res) => {
+        app.get("/classs", verifyJWT, verifyAdmin, async (req, res) => {
             const result = await classCollection.find().toArray();
             res.send(result);
         });
+
+        app.get('/approved-classes', async (req, res) => {
+            const query = {status: "Approved"}
+            const approvedClass = await classCollection.find(query).toArray();
+            const result = {class: approvedClass?.status === "Approved"}
+            res.send(approvedClass)
+        })
 
         app.get("/users/instructor/:email", verifyJWT, async (req, res) => {
             const email = req.params.email;
@@ -225,6 +232,13 @@ async function run() {
             const result = await userCollection.updateOne(filter, newRole, options);
             res.send(result)
             
+        })
+
+        app.delete('/users/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await userCollection.deleteOne(query);
+            res.send(result)            
         })
 
         // Send a ping to confirm a successful connection
