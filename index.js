@@ -76,6 +76,7 @@ async function run() {
             next();
         };
 
+        // Its not a usefull function TODO:
         const verifyInstructor = async (req, res, next) => {
             const email = req.decoded.email;
             const query = { email: email };
@@ -163,6 +164,14 @@ async function run() {
             res.send(result)
         });
 
+        app.delete("/selectedClass/:id", async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = {_id: new ObjectId(id)}
+            const result = await selectedCollection.deleteOne(query);
+            res.send(result);
+        });
+
         app.get("/selectedClass", verifyJWT, async (req, res) => {
           const email = req.decoded.email;
 
@@ -189,6 +198,34 @@ async function run() {
             const result = await userCollection.find().toArray();
             res.send(result);
         });
+
+        app.put('/users/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const email = req.decoded.email;
+            console.log(email, 'hitting to make role change to Admin', id);
+            const filter = {_id: new ObjectId(id)}
+            const options = {upsert: true}
+            const newRole = {
+              $set: {role: 'admin', roleStatusLog: {permitter: email, date: Date(),}}
+            }
+            const result = await userCollection.updateOne(filter, newRole, options);
+            res.send(result)
+            
+        })
+
+        app.put('/users/instructor/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const email = req.decoded.email;
+            console.log(email, 'hitting to make role change to Instructor', id);
+            const filter = {_id: new ObjectId(id)}
+            const options = {upsert: true}
+            const newRole = {
+              $set: {role: 'instructor', roleStatusLog: {permitter: email, date: Date(),}}
+            }
+            const result = await userCollection.updateOne(filter, newRole, options);
+            res.send(result)
+            
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
