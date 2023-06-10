@@ -105,7 +105,16 @@ async function run() {
         });
 
         app.put("/classs/:id", async (req, res) => {
+            const id = req.params.id;
             console.log('Id hitting to approve', req.params.id);
+            const filter = {_id: new ObjectId(id)}
+            const options = {upsert: true}
+            const newStatus = {
+                $set: {status: 'Approved',}
+            }
+            const result = await classCollection.updateOne(filter, newStatus, options)
+
+            res.send(result);
         });
 
         app.get('/approved-classes', async (req, res) => {
@@ -230,8 +239,10 @@ async function run() {
             console.log(email, 'hitting to make role change to Instructor', id);
             const filter = {_id: new ObjectId(id)}
             const options = {upsert: true}
+
             const newRole = {
-              $set: {role: 'instructor', roleStatusLog: {permitter: email, date: Date(),}}
+              $set: {role: 'instructor', 
+              roleStatusLog: {permitter: email, date: Date(),}}
             }
             const result = await userCollection.updateOne(filter, newRole, options);
             res.send(result)
