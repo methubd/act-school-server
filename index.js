@@ -19,7 +19,7 @@ const verifyJWT = (req, res, next) => {
             .send({ error: true, message: "Unauthorized Access" });
     }
 
-    //bearer token
+    //token
     const token = authorization.split(" ")[1];
 
     jwt.verify(token, process.env.VERIFY_TOKEN, (error, decoded) => {
@@ -257,6 +257,24 @@ async function run() {
         })
 
         /*****************************
+         * Enrolled Class Route
+         ******************************/ 
+        app.get('/payments', verifyJWT, async (req, res) => {
+            const email = req.decoded.email;            
+            const query = {email: email}
+
+            const paymentsHistory = await paymentCollection.find(query).toArray();
+            const paidCourseIds = paymentsHistory.map(payment => payment.classId)
+            const classes = await classCollection.find().toArray();
+            const paidClasses = classes.filter(cls => cls._id === paidCourseIds)
+            
+            
+
+            res.send({paymentsHistory, paidCourseIds, paidClasses});
+            
+        })
+
+        /*****************************
          * Stripe Gateway
          ******************************/    
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
@@ -272,8 +290,7 @@ async function run() {
             })
         })
 
-        //payment
-
+        //payment-
         app.post('/payments', verifyJWT, async (req, res) => {
             const payment = req.body;
             const insertResult = await paymentCollection.insertOne(payment);
@@ -283,6 +300,8 @@ async function run() {
 
             res.send({insertResult, deleteResult})
         })
+
+        
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
