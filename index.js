@@ -106,11 +106,26 @@ async function run() {
 
         app.put("/classs/:id", async (req, res) => {
             const id = req.params.id;
+            const feedback = req.body;
+            console.log(feedback);
             // console.log('Id hitting to approve', req.params.id);
             const filter = {_id: new ObjectId(id)}
             const options = {upsert: true}
             const newStatus = {
                 $set: {status: 'Approved',}
+            }
+            const result = await classCollection.updateOne(filter, newStatus, options)
+
+            res.send(result);
+        });
+
+        app.put("/classs-d/:id", async (req, res) => {
+            const id = req.params.id;
+            // console.log('Id hitting to approve', req.params.id);
+            const filter = {_id: new ObjectId(id)}
+            const options = {upsert: true}
+            const newStatus = {
+                $set: {status: 'Denied',}
             }
             const result = await classCollection.updateOne(filter, newStatus, options)
 
@@ -266,9 +281,7 @@ async function run() {
             const paymentsHistory = await paymentCollection.find(query).toArray();
             const paidCourseIds = paymentsHistory.map(payment => payment.classId)
             const classes = await classCollection.find().toArray();
-            const paidClasses = classes.filter(cls => cls._id === paidCourseIds)
-            
-            
+            const paidClasses = classes.filter(cls => cls._id === paidCourseIds)           
 
             res.send({paymentsHistory, paidCourseIds, paidClasses});
             
